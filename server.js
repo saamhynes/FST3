@@ -9,9 +9,10 @@ const flash = require('express-flash');
 const session = require('express-session');
 const methodOverride = require('method-override');
 const uuid = require('uuid')
-const logins = require('./services/p.logins.dal') // use POSTGRESQL dal
-//const logins = require('./services/m.logins.dal') // use MONGODB dal
+//const logins = require('./services/p.logins.dal') // use POSTGRESQL dal
+const logins = require('./services/m.logins.dal') // use MONGODB dal
 const app = express();
+const PORT = process.env.PORT || 3000;
 global.DEBUG = false;
 passport.use(new localStrategy({ usernameField: 'email' }, async (email, password, done) => {
     let user = await logins.getLoginByEmail(email);
@@ -28,6 +29,12 @@ passport.use(new localStrategy({ usernameField: 'email' }, async (email, passwor
         return done(error);
     }
 }))
+
+// Passport session setup.
+//   To support persistent login sessions, Passport needs to be able to
+//   serialize users into and deserialize users out of the session.  Typically,
+//   this will be as simple as storing the user ID when serializing, and finding
+//   the user by ID when deserializing.  
 passport.serializeUser((user, done) => {
     done(null, user._id)
 });
@@ -49,6 +56,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(methodOverride('_method'));
 
+// Passport checkAuthenticated() middleware.
+// For every route we check the person is logged in. If not we send them 
+// to the login page
 app.get('/', checkAuthenticated, (req, res) => {
     res.render('index.ejs', { name: req.user.username });
 });
@@ -59,21 +69,20 @@ app.get('/sample1', checkAuthenticated, (req, res) => {
 app.get('/sample2', checkAuthenticated, (req, res) => {
     res.render('sample.two.ejs');
 });
-
+// Passport checkNotAuthenticated() middleware.
+// This middleware is only for the login and register. If someone stumbles 
+// upon these routes they only need access if they are NOT authenticated. 
 app.get('/login', checkNotAuthenticated, (req, res) => {
     res.render('login.ejs');
 });
-
 app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
     successRedirect: '/',
     failureRedirect: '/login',
     failureFlash: true
 }));
-
 app.get('/register', checkNotAuthenticated, (req, res) => {
     res.render('register.ejs');
 });
-
 app.post('/register', checkNotAuthenticated, async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -98,7 +107,6 @@ function checkAuthenticated(req, res, next) {
     }
     res.redirect('/login');
 }
-
 function checkNotAuthenticated(req, res, next) {
     if ( req.isAuthenticated()) {
         return res.redirect('/');
@@ -106,4 +114,7 @@ function checkNotAuthenticated(req, res, next) {
     return next();
 }
 
-app.listen(3000);
+app.listen(PORT, (err) => {
+    if (err) console.log(err);
+    console.log(`Passport app running on port ${PORT}.`)
+});
