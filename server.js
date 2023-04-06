@@ -9,11 +9,11 @@ const flash = require('express-flash');
 const session = require('express-session');
 const methodOverride = require('method-override');
 const uuid = require('uuid')
-//const logins = require('./services/p.logins.dal') // use POSTGRESQL dal
-const logins = require('./services/m.logins.dal') // use MONGODB dal
+const logins = require('./services/p.logins.dal') // use POSTGRESQL dal
+//const logins = require('./services/m.logins.dal') // use MONGODB dal
 const app = express();
 const PORT = process.env.PORT || 3000;
-global.DEBUG = false;
+global.DEBUG = true;
 passport.use(new localStrategy({ usernameField: 'email' }, async (email, password, done) => {
     let user = await logins.getLoginByEmail(email);
     if( user == null ) {
