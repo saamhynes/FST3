@@ -9,8 +9,8 @@ const flash = require('express-flash');
 const session = require('express-session');
 const methodOverride = require('method-override');
 const uuid = require('uuid')
-const logins = require('./services/p.logins.dal') // use POSTGRESQL dal
-//const logins = require('./services/m.logins.dal') // use MONGODB dal
+//const logins = require('./services/p.logins.dal') // use POSTGRESQL dal
+const logins = require('./services/m.logins.dal') // use MONGODB dal
 const app = express();
 const PORT = process.env.PORT || 3000;
 global.DEBUG = true;
@@ -69,6 +69,26 @@ app.get('/sample1', checkAuthenticated, (req, res) => {
 app.get('/sample2', checkAuthenticated, (req, res) => {
     res.render('sample.two.ejs');
 });
+
+async function getUser(userId) {
+    // Implementation depends on your data source
+    // This is just a placeholder
+    return {
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        hobbies: ['Reading', 'Coding', 'Hiking']
+    };
+}
+app.get('/profile/:userId', checkAuthenticated, async (req, res) => {
+    const user = await getUser(req.params.userId);
+    res.render('profile.ejs', { user });
+});
+
+app.get('/query/:word', checkAuthenticated, async (req, res) => {
+    const results = await logins.findByQuery(req.params.word);
+    res.json(results);
+});
+
 // Passport checkNotAuthenticated() middleware.
 // This middleware is only for the login and register. If someone stumbles 
 // upon these routes they only need access if they are NOT authenticated. 
