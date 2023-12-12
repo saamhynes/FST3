@@ -77,10 +77,10 @@ app.get("/", checkAuthenticated, (req, res) => {
 });
 
 app.get("/sample1", checkAuthenticated, (req, res) => {
-  res.render("sample.one.ejs");
+  res.render("sql.db.ejs");
 });
 app.get("/sample2", checkAuthenticated, (req, res) => {
-  res.render("sample.two.ejs");
+  res.render("mongo.db.ejs");
 });
 
 async function getUser(userId) {
@@ -94,7 +94,7 @@ async function getUser(userId) {
 }
 app.get("/profile/:userId", checkAuthenticated, async (req, res) => {
   const user = await getUser(req.params.userId);
-  res.render("profile.ejs", { user });
+  res.render("both.db.ejs", { user });
 });
 
 app.get("/query/:word", checkAuthenticated, async (req, res) => {
