@@ -1,46 +1,48 @@
 const dal = require("./p.db");
+const pool = require("./p.db");
 
 async function getLogins() {
-  let SQL = `SELECT id AS _id, username, password, email, uuid FROM public."Logins"`;
+  let SQL = `SELECT id AS _id, name, email, password FROM logins`;
   try {
     let results = await dal.query(SQL, []);
     return results.rows;
   } catch (error) {
     console.log(error);
   }
-};
+}
 async function getLoginByEmail(email) {
-  let SQL = `SELECT id AS _id, username, password, email, uuid FROM public."Logins" WHERE email = $1`;
   try {
-    let results = await dal.query(SQL, [email]);
-    return results.rows[0];
+    const query = "SELECT * FROM logins WHERE email = $1";
+    const { rows } = await pool.query(query, [email]);
+    return rows[0];
   } catch (error) {
-    console.log(error);
-  }  
-};
+    console.error("Error retrieving user by email:", error);
+    throw error;
+  }
+}
 async function getLoginById(id) {
-  let SQL = `SELECT id AS _id, username, password, email, uuid FROM public."Logins" WHERE id = $1`;
+  let SQL = `SELECT id AS _id, name, email, password FROM logins WHERE id = $1`;
   try {
     let results = await dal.query(SQL, [id]);
     return results.rows[0];
   } catch (error) {
     console.log(error);
-  } 
-};
-async function addLogin(name, email, password, uuidv4) {
-  let SQL = `INSERT INTO public."Logins"(username, email, password, uuid)
-    VALUES ($1, $2, $3, $4) RETURNING id;`
+  }
+}
+async function addLogin(name, email, password) {
+  let SQL = `INSERT INTO logins (name, email, password)
+    VALUES ($1, $2, $3) RETURNING *;`;
   try {
-    let results = await dal.query(SQL, [name, email, password, uuidv4]);
-    return results.rows[0].id;
+    let results = await dal.query(SQL, [name, email, password]);
+    return results.rows[0];
   } catch (error) {
     console.log(error);
-  } 
-};
+  }
+}
 
 module.exports = {
-    getLogins,
-    addLogin,
-    getLoginByEmail, 
-    getLoginById,
-  }
+  getLogins,
+  addLogin,
+  getLoginByEmail,
+  getLoginById,
+};
